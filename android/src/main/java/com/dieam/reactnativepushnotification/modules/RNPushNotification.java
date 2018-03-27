@@ -31,6 +31,7 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
     private RNPushNotificationHelper mRNPushNotificationHelper;
     private final Random mRandomNumberGenerator = new Random(System.currentTimeMillis());
     private RNPushNotificationJsDelivery mJsDelivery;
+    private Bundle savedBundle = null;
 
     public RNPushNotification(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -141,7 +142,19 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
         Activity activity = getCurrentActivity();
         if (activity != null) {
             Intent intent = activity.getIntent();
-            Bundle bundle = intent.getBundleExtra("notification");
+            Bundle bundle = null;
+
+            if (intent.hasExtra("notification")) {
+                bundle = intent.getBundleExtra("notification");
+            } else if (intent.hasExtra("google.message_id")) {
+                bundle = intent.getExtras();
+            }
+
+            if (this.savedBundle != null){
+                bundle = savedBundle;
+                this.savedBundle = null;
+            }
+
             if (bundle != null) {
                 bundle.putBoolean("foreground", false);
                 String bundleString = mJsDelivery.convertJSON(bundle);
